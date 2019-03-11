@@ -4270,7 +4270,7 @@ class Axes(_AxesBase):
     def scatter(self, x, y, s=None, c=None, marker=None, cmap=None, norm=None,
                 vmin=None, vmax=None, alpha=None, linewidths=None,
                 verts=None, edgecolors=None, *, plotnonfinite=False,
-                **kwargs):
+                clip_box=None, **kwargs):
         """
         A scatter plot of *y* vs *x* with varying marker size and/or color.
 
@@ -4384,7 +4384,20 @@ optional.
 
         """
         # Process **kwargs to handle aliases, conflicts with explicit kwargs:
-
+        
+        # Changes so clip_box works as a parameter here
+        if 'clip_on' in kwargs:
+            if kwargs['clip_on'] == True:
+                if clip_box and isinstance(clip_box, mtransforms.Bbox):
+                    newX = []
+                    newY = []
+                    for (i, j) in zip(x, y):
+                        if (clip_box.x0 <= i <= clip_box.x1 and clip_box.y0 <= j <= clip_box.y1):
+                            newX.append(i)
+                            newY.append(j)
+                    x = newX
+                    y = newY
+    
         self._process_unit_info(xdata=x, ydata=y, kwargs=kwargs)
         x = self.convert_xunits(x)
         y = self.convert_yunits(y)
